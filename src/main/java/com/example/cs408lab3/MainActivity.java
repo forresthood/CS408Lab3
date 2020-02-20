@@ -8,11 +8,27 @@ import com.google.android.material.snackbar.Snackbar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import java.math.BigDecimal;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static final String TAG = "MainActivity";
+    private String onScreen = "";
+    private String currentNum = "";
+    private String chosenOperator = "";
+    private BigDecimal leftNumber = null;
+    private BigDecimal rightNumber = null;
+    private BigDecimal result;
+    private boolean hasTwoOperands = false;
+    private boolean hasDecimal = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,6 +45,124 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+
+    }
+
+    public void numClicked(View v){
+        String buttonText = ((Button) v).getText().toString();
+        onScreen = onScreen.concat(buttonText);
+        currentNum = currentNum.concat(buttonText);
+        TextView t = (TextView) findViewById(R.id.textView);
+        t.setText(onScreen);
+        if (leftNumber != null) {
+            hasTwoOperands = true;
+        }
+    }
+
+    public void operatorClicked(View v){
+        if (chosenOperator.equals("") && !currentNum.equals("")) {
+            TextView t = (TextView) findViewById(R.id.textView);
+            String buttonText = ((Button) v).getText().toString();
+            chosenOperator = buttonText;
+            if (chosenOperator.equals("\u221A")){
+                if (leftNumber == null) {
+                    leftNumber = new BigDecimal(currentNum);
+                }
+                double temp = leftNumber.doubleValue();
+                temp = Math.pow(temp, 0.5);
+                leftNumber = new BigDecimal(temp);
+                currentNum = leftNumber.toString();
+
+                onScreen = leftNumber.toString();
+                t.setText(onScreen);
+                chosenOperator = "";
+            }
+            else {
+                onScreen = onScreen.concat(" " + buttonText + " ");
+                if (leftNumber == null) {
+                    leftNumber = new BigDecimal(currentNum);
+                }
+                currentNum = "";
+                hasDecimal = false;
+                t.setText(onScreen);
+            }
+        }
+        else{
+            Toast toast= Toast.makeText(getBaseContext(), "Error", Toast.LENGTH_SHORT);
+            toast.show();
+        }
+    }
+
+    public void clearClicked(View v){
+        TextView t = (TextView) findViewById(R.id.textView);
+        onScreen = "";
+        t.setText(onScreen);
+        leftNumber = null;
+        rightNumber = null;
+        currentNum = "";
+        chosenOperator = "";
+        hasTwoOperands = false;
+        hasDecimal = false;
+    }
+
+    public void decimalClicked(View v){
+        if (!hasDecimal) {
+            hasDecimal = true;
+            TextView t = (TextView) findViewById(R.id.textView);
+            currentNum = currentNum.concat(".");
+            onScreen = onScreen.concat(".");
+        }
+        else{
+            Toast toast= Toast.makeText(getBaseContext(), "Error", Toast.LENGTH_SHORT);
+            toast.show();
+        }
+    }
+
+    public void signClicked(View v){
+        BigDecimal x = new BigDecimal(currentNum);
+        x = x.negate();
+        currentNum = x.toString();
+    }
+
+    public void equalsClicked(View v){
+        if (hasTwoOperands && chosenOperator != null){
+            TextView t = (TextView) findViewById(R.id.textView);
+            rightNumber = new BigDecimal(currentNum);
+
+            switch(chosenOperator){
+                case "+":
+                    result = leftNumber.add(rightNumber);
+                    break;
+                case "-":
+                    result = leftNumber.subtract(rightNumber);
+                    break;
+                case "x":
+                    result = leftNumber.multiply(rightNumber);
+                    break;
+                case "÷":
+                    result = leftNumber.divide(rightNumber);
+                    break;
+                case "%":
+                    result = leftNumber.remainder(rightNumber);
+                    break;
+                default:
+                    result = BigDecimal.ZERO;
+                    Toast toast= Toast.makeText(getBaseContext(), "Error", Toast.LENGTH_SHORT);
+                    toast.show();
+            }
+            leftNumber = result;
+            onScreen = leftNumber.toString();
+            hasTwoOperands = false;
+            hasDecimal = false;
+            currentNum = leftNumber.toString();
+            chosenOperator = "";
+            t.setText(onScreen);
+
+        }
+        else{
+            Toast toast= Toast.makeText(getBaseContext(), "Error", Toast.LENGTH_SHORT);
+            toast.show();
+        }
     }
 
     @Override
